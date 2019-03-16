@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"strconv"
 	"strings"
 )
 
@@ -21,7 +22,8 @@ func main() {
 		log.Fatal(err)
 	}
 	cutted := cutter(ipOutputByte)
-	fmt.Println(wordExtractor(cutted[0], 0))
+	ss := aggregator(cutted)
+	fmt.Println(ss)
 }
 
 // cut ip link output to strings
@@ -31,8 +33,21 @@ func cutter(text []byte) []string {
 	return strings.Split(clean, "\n")
 }
 
-// func agregator(value []string) []adapter {
-// }
+// cuts out data from value to slice of adapter structs
+func aggregator(value []string) []adapter {
+	adapters := []adapter{}
+	for i := range value {
+		number, _ := strconv.Atoi(wordExtractor(value[i], 0))
+		a := adapter{
+			number: number,
+			name:   wordExtractor(value[i], 1),
+			mac:    wordExtractor(value[i], 16),
+			mode:   wordExtractor(value[i], 10),
+		}
+		adapters = append(adapters, a)
+	}
+	return adapters
+}
 
 // extract word by position
 func wordExtractor(value string, position int) string {
