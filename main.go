@@ -22,8 +22,8 @@ func main() {
 		log.Fatal(err)
 	}
 	cutted := cutter(ipOutputByte)
-	ss := aggregator(cutted)
-	fmt.Println(ss)
+	adapters := aggregator(cutted)
+	printAdapters(adapters)
 }
 
 // cut ip link output to strings
@@ -76,4 +76,29 @@ func wordExtractor(value string, position int) string {
 		prevSpace = index
 	}
 	return words[position]
+}
+
+func printAdapters(adapters []adapter) {
+	// find adapter with longest name
+	lenLongestName := 0
+	for i := range adapters {
+		a := adapters[i]
+		if len(a.name) > lenLongestName {
+			lenLongestName = len(a.name)
+		}
+	}
+	for i := range adapters {
+		// add ":" to number
+		a := adapters[i]
+		number := strconv.Itoa(a.number) + ":"
+		//
+		name := ""
+		if len(a.name) < lenLongestName {
+			countSpaces := lenLongestName - len(a.name)
+			name = a.name + strings.Repeat(" ", countSpaces)
+		} else {
+			name = a.name
+		}
+		fmt.Println(number, name, a.mac, a.mode)
+	}
 }
