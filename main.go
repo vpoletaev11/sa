@@ -21,8 +21,11 @@ func main() {
 		log.Fatal(err)
 	}
 	cutted := cutter(ipOutputByte)
-	adapters := aggregator(cutted)
-	printAdapters(adapters)
+	adaptersStruct := aggregator(cutted)
+	adaptersStr := sliceAdaptersStr(adaptersStruct)
+	for _, adapterStr := range adaptersStr {
+		fmt.Println(adapterStr)
+	}
 }
 
 // cut ip link output to strings
@@ -37,8 +40,7 @@ func cutter(text []byte) []string {
 func aggregator(lines []string) []adapter {
 	adapters := []adapter{}
 	for _, value := range lines {
-		// err handle
-		words := wordExtractor(value)
+		words := wordsExtractor(value)
 		// output of "ip link" assumed to be hardcoded
 		a := adapter{
 			number: words[0],
@@ -52,7 +54,7 @@ func aggregator(lines []string) []adapter {
 }
 
 // create slice of words from line, remove ":" from last element of words
-func wordExtractor(line string) []string {
+func wordsExtractor(line string) []string {
 	// create slice of words from line
 	words := strings.Split(line, " ")
 	// remove ":"
@@ -63,7 +65,8 @@ func wordExtractor(line string) []string {
 	return words
 }
 
-func printAdapters(adapters []adapter) {
+// return slice with formatted strings for adapters
+func sliceAdaptersStr(adapters []adapter) []string {
 	// find adapter with longest name
 	lenLongestName := 0
 	for _, a := range adapters {
@@ -71,10 +74,11 @@ func printAdapters(adapters []adapter) {
 			lenLongestName = len(a.name)
 		}
 	}
+	// create slice with formatted strings for adapters
+	adaptersStr := []string{}
 	for i := range adapters {
 		// add ":" to number
 		a := adapters[i]
-		number := a.number + ":"
 		//
 		name := ""
 		if len(a.name) < lenLongestName {
@@ -83,6 +87,8 @@ func printAdapters(adapters []adapter) {
 		} else {
 			name = a.name
 		}
-		fmt.Println(number, name, a.mac, a.mode)
+		adapter := a.number + ":" + " " + name + " " + a.mac + " " + a.mode
+		adaptersStr = append(adaptersStr, adapter)
 	}
+	return adaptersStr
 }
