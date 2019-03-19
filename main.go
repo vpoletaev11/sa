@@ -4,20 +4,19 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
-	"strconv"
 	"strings"
 )
 
-//contain parameters for adapter
+//contains parameters for adapter
 type adapter struct {
-	number int
+	number string
 	name   string
 	mac    string
 	mode   string
 }
 
 func main() {
-	ipOutputByte, err := exec.Command("ip", "link", "show").Output()
+	ipOutputByte, err := exec.Command("ip", "link").Output()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,60 +28,45 @@ func main() {
 // cut ip link output to strings
 func cutter(text []byte) []string {
 	clean := strings.Replace(string(text), "\n    ", " ", -1)
+	// delete last "\n" (redundunt)
 	clean = clean[:len(clean)-1]
 	return strings.Split(clean, "\n")
 }
 
-// cuts out data from value to slice of adapter structs
-func aggregator(value []string) []adapter {
+// cuts out data from lines to slice of adapter structs
+func aggregator(lines []string) []adapter {
 	adapters := []adapter{}
-	for i := range value {
-		number, _ := strconv.Atoi(wordExtractor(value[i], 0))
+	for _, value := range lines {
+		// err handle
+		words := wordExtractor(value)
+		// output of "ip link" assumed to be hardcoded
 		a := adapter{
-			number: number,
-			name:   wordExtractor(value[i], 1),
-			mac:    wordExtractor(value[i], 16),
-			mode:   wordExtractor(value[i], 10),
+			number: words[0],
+			name:   words[1],
+			mac:    words[16],
+			mode:   words[10],
 		}
 		adapters = append(adapters, a)
 	}
 	return adapters
 }
 
-// extract word by position
-func wordExtractor(value string, position int) string {
-	// create slice of spaces for value
-	spaces := []int{}
-	for i := range value {
-		if string(value[i]) == " " {
-			spaces = append(spaces, i)
-		}
+// create slice of words from line, remove ":" from last element of words
+func wordExtractor(line string) []string {
+	// create slice of words from line
+	words := strings.Split(line, " ")
+	// remove ":"
+	for i, value := range words[:2] {
+		value = value[:len(value)-1]
+		words[i] = value
 	}
-	// create slice of words for value
-	words := []string{}
-	prevSpace := 0
-	for _, index := range spaces {
-		word := ""
-		if position == 0 {
-			word = value[:index]
-		} else {
-			word = value[prevSpace+1 : index]
-		}
-		if string(word[len(word)-1]) == ":" {
-			words = append(words, word[:len(word)-1])
-		} else {
-			words = append(words, word)
-		}
-		prevSpace = index
-	}
-	return words[position]
+	return words
 }
 
 func printAdapters(adapters []adapter) {
 	// find adapter with longest name
 	lenLongestName := 0
-	for i := range adapters {
-		a := adapters[i]
+	for _, a := range adapters {
 		if len(a.name) > lenLongestName {
 			lenLongestName = len(a.name)
 		}
@@ -90,7 +74,7 @@ func printAdapters(adapters []adapter) {
 	for i := range adapters {
 		// add ":" to number
 		a := adapters[i]
-		number := strconv.Itoa(a.number) + ":"
+		number := a.number + ":"
 		//
 		name := ""
 		if len(a.name) < lenLongestName {
