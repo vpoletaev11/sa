@@ -1,4 +1,6 @@
 # sa [show adapters]
+[![CircleCI](https://circleci.com/gh/vpoletaev11/sa.svg?style=svg)](https://circleci.com/gh/vpoletaev11/sa)
+[![Coverage Status](https://coveralls.io/repos/github/vpoletaev11/sa/badge.svg?branch=master)](https://coveralls.io/github/vpoletaev11/sa?branch=master)
 
 **sa** - linux utility that shows system information about network adapters in your system.
 
